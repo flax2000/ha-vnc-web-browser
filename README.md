@@ -1,5 +1,6 @@
 # Installation
-add this folder to <hassio top directory>/local_apps/
+add this folder to /local_apps/
+to use as a local addon
 Configure the addon as described below
 Start the addon
 

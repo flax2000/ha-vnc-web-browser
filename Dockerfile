@@ -1,58 +1,62 @@
-# Debian 13 ships Chromium 151.x (bullseye froze at 120 and is EOL for chromium).
-FROM debian:trixie-slim
+FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
+# 1. Install lean dependencies
 RUN apt-get update && apt-get install -y \
-    tightvncserver \
+    tigervnc-standalone-server \
+    matchbox-window-manager \
     chromium \
     x11-xserver-utils \
     xauth \
     jq \
     dbus-x11 \
-    x11-xserver-utils \
-    socat \
-    procps \
-    curl \
+    ca-certificates \
+    xdotool \
+    libgl1-mesa-dri \
+    libglapi-mesa \
+    libosmesa6 \
+    libegl-dev \
+    libgles-dev \
+    libvulkan-dev \
     python3 \
-    tini \
+    python3-pip \
+    procps \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user and add to required groups
-RUN useradd -m -s /bin/bash vnc_user && \
-    mkdir -p /run/dbus && \
-    chown vnc_user:vnc_user /run/dbus
+# 2. Simplified User Setup
+RUN groupadd -g 109 render || true && \
+    useradd -m -s /bin/bash vnc_user && \
+    usermod -aG video vnc_user && \
+    usermod -aG render vnc_user || true
 
-# Set up VNC directory for the new user
+# 3. Set up environment
 USER vnc_user
 RUN mkdir -p /home/vnc_user/.vnc
 
-# Switch back to root to copy files and set permissions
+# 4. Copy files and set permissions
 USER root
 COPY startup.sh /home/vnc_user/startup.sh
 COPY run_vnc.sh /home/vnc_user/run_vnc.sh
-COPY cdp_helper.py /home/vnc_user/cdp_helper.py
 COPY chromium_preferences.json /home/vnc_user/chromium_preferences.json
 COPY xstartup /home/vnc_user/.vnc/xstartup
-RUN chown vnc_user:vnc_user /home/vnc_user/startup.sh /home/vnc_user/run_vnc.sh /home/vnc_user/cdp_helper.py /home/vnc_user/chromium_preferences.json /home/vnc_user/.vnc/xstartup && \
-    chmod +x /home/vnc_user/startup.sh /home/vnc_user/run_vnc.sh /home/vnc_user/cdp_helper.py /home/vnc_user/.vnc/xstartup
+
+RUN chown -R vnc_user:vnc_user /home/vnc_user && \
+    chmod +x /home/vnc_user/startup.sh /home/vnc_user/run_vnc.sh /home/vnc_user/.vnc/xstartup
 
 WORKDIR /home/vnc_user
-
-# Set the USER environment variable
 ENV USER=vnc_user
 
-# Labels for Home Assistant
 LABEL \
     io.hass.name="VNC Web Browser" \
     io.hass.description="Display multiple web pages through VNC" \
     io.hass.type="addon" \
-    io.hass.version="0.16.0" \
+    io.hass.version="0.13.63" \
     io.hass.arch="aarch64|amd64|armhf|armv7"
 
-# Expose VNC ports (one per display) and optional CDP ports (Chrome DevTools Protocol)
-EXPOSE 5901/tcp 5902/tcp 5903/tcp 5904/tcp 9221/tcp 9222/tcp 9223/tcp 9224/tcp
+EXPOSE 5901-5908 8080
 
-CMD ["/usr/bin/tini", "--", "/home/vnc_user/startup.sh"]
+USER root
+CMD ["/home/vnc_user/startup.sh"]

@@ -1,52 +1,16 @@
 {
-    "browser": {
-      "check_default_browser": false,
-      "custom_chrome_frame": false
-    },
-    "credentials_enable_service": false,
-    "profile": {
-      "password_manager_enabled": false,
-      "exit_type": "Normal",
-      "exited_cleanly": true
-    },
-    "password_manager": {
-      "enable_save_password_bubble": false,
-      "saving_enabled": false,
-      "enable_autosignin": false
-    },
-    "history": {
-      "saving_disabled": true
-    },
-    "metrics": {
-      "reporting_enabled": false
-    },
-    "autofill": {
-      "enabled": false,
-      "profile_enabled": false,
-      "credit_card_enabled": false
-    },
-    "extensions": {
-      "theme": {
-        "use_system": true
-      }
-    },
-    "hardware_acceleration_mode": {
-      "enabled": false
-    },
-    "smooth_scrolling": {
-      "enabled": false
-    },
-    "new_tab_page": {
-      "show_most_visited": false,
-      "show_suggestions": false
-    },
-    "accessibility": {
-      "force_disabled": 1
-    },
-    "kiosk_mode": {
-      "enabled": true
-    },
-    "session": {
-      "restore_on_startup": 5
-    }
+  "browser": {
+    "check_default_browser": false
+  },
+  "kiosk": {
+    "enabled": true,
+    "always_on_top": true
+  },
+  "profile": {
+    "exit_type": "Normal",
+    "exited_cleanly": true
+  },
+  "fullscreen": {
+    "allowed": true
   }
+}

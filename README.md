@@ -1,159 +1,97 @@
-# Home Assistant VNC Web Browser Addon
+# Installation
+Add https://github.com/flax2000/home-assistant-addons to the addon store repositories
+Install the VNC Web Browser addon
+Configure the addon as described below
+Start the addon
 
-This addon allows you to display multiple web pages through VNC connections. Each web page runs in its own Chromium instance with a dedicated VNC server, making it perfect for displaying dashboards, cameras, or any other web content.
 
-This is especially useful for older or low power devices that don't have a recent browser. You can use old tablets or e-ink devices as dashboards.
 
-![P_20240928_170707](https://github.com/user-attachments/assets/dd021934-9a1b-4fa2-8569-2d08c59f34cf)
+# Home Assistant Kiosk Browser Add-on
 
-![P_20241219_162815](https://github.com/user-attachments/assets/2e463e6e-1c56-43d9-a331-051a47444930)
+This add-on is based on the original POC: [MindFreeze/vnc-web](https://github.com/MindFreeze/vnc-web).
 
-## Installation
+An optimized, resource-light kiosk add-on built on Debian Bookworm that runs Chromium and TigerVNC. It allows you to display your Home Assistant dashboards seamlessly on older Android tablets or any device supporting VNC viewers, even in multi-display setups.
 
-1. Add https://github.com/MindFreeze/home-assistant-addons to the addon store repositories
-2. Install the VNC Web Browser addon
-3. Configure the addon as described below
-4. Start the addon
+## Features
 
-## Configuration
+- **Chromium Kiosk Mode:** Launches directly into fullscreen kiosk mode targeting your customized URLs.
+- **Multi-Display VNC Server Support:** Runs isolated Xvnc servers for multiple displays (defaulting to ports `5901` through `5904`), complete with configurable color depths, frame rates, and resolutions.
+- **Advanced Control HTTP API:** Exposes an API on port `8080` to remotely restart, redraw, pause, resume, or click specific coordinates on individual or all displays.
+- **Resource Optimization:** Automatically purges temporary browser caches and temporary data files to prevent memory bloat during 24/7 operation on resource-constrained hardware.
+- **Automated Interaction via `xdotool`:** Executes custom startup sequences to handle UI navigation or bypass blank loading glitches automatically.
 
-Example configuration:
+---
 
-```yaml
-displays:
-  - url: "http://homeassistant:8123"
-    resolution: "1920x1080"
-    port: 5901
-    depth: 16
-    view_only: false
-    pull_to_refresh: true
-    browser_args: "--force-dark-mode"
-  - url: "http://example2.com"
-    resolution: "1280x720"
-    port: 5902
-    depth: 16
-    view_only: false
-    pull_to_refresh: true
-    browser_args: ""
-vnc_password: "your_secure_password"
-ha_access_token: "<long-lived-access-token>"
-```
+## Configuration (`config.yaml`)
 
-### Configuration Options
-
-- `displays`: List of displays to create
-  - `url`: The URL to display in the browser
-  - `resolution`: The resolution of the display (e.g., "1920x1080")
-  - `port`: VNC port number (must be between 5901 and 5908). This is the port used in the docker container. You can map it to another port in the addon's network configuration
-  - `depth`: Color depth in bits (8-32, defaults to 16). Common values are 8, 16, 24, or 32. There seem to be some issues with 8 bit depth so be careful with that value
-  - `view_only`: Optional boolean to enable view-only mode (defaults to false). When enabled, keyboard and pointer events from VNC clients will be ignored. Pull-to-refresh cannot work in view-only mode.
-  - `pull_to_refresh`: Optional boolean (defaults to true). Drag down from the top of the page to reload. See "Pull to refresh" below.
-  - `browser_args`: Optional string containing additional CLI arguments to pass to Chromium. Common examples:
-    - `"--force-dark-mode"` - Enable dark mode
-    - `"--force-device-scale-factor=1.5"` - Set custom zoom level
-    - `"--disable-features=Translate"` - Disable specific features
-    - You can combine multiple arguments: `"--force-dark-mode --force-device-scale-factor=1.25"`
-  - `cdp_port`: Optional integer (9221-9224) enabling Chrome DevTools Protocol on this display. See "Chrome DevTools Protocol" below.
-  - `ha_access_token`: Optional long-lived access token for this display only. Overrides the global `ha_access_token`. Use this when some displays are Home Assistant and others are not, so the token is not written into another site's origin.
-- `vnc_password`: Password for VNC connections
-- `ha_access_token`: Optional Home Assistant long-lived access token used to log into dashboards on first start. See "Home Assistant login" below.
-
-## Home Assistant login
-
-### Automatic login (long-lived access token)
-
-Create a token in Home Assistant: **Profile → Security → Long-lived access tokens**. A dedicated kiosk user is recommended. Paste the token as `ha_access_token` (global or on an individual display).
-
-On start the addon seeds the frontend session so the dashboard loads without a login form. That is the path for Kindles and other devices without a keyboard.
-
-Set `url` to the same origin Chromium actually opens. From inside the addon network that is usually `http://homeassistant:8123` (most existing installs) or just `http://homeassistant` on newer installs whose Core HTTP port is 80. `homeassistant.local` may not resolve inside the container.
-
-### Remember me (no token)
-
-If you do not set a token, connect over VNC and log in once with **Remember me**. This should persist between restarts. If your display device doesn't have a keyboard (like some Kindles), you can connect from another device once in order to login.
-
-## Pull to refresh
-
-Chromium runs in kiosk mode (no toolbar), and VNC clients often cannot send F5 or Ctrl+R — especially from macOS, and on Kindles with no keyboard. Pull down from the top of the page to reload.
-
-The gesture only arms when every scrollable area under your finger is already at the top, so scrolling a dashboard as usual does not refresh. Release after the bar shows **Release to refresh**.
-
-This needs `view_only: false` (the default). Set `pull_to_refresh: false` on a display to disable it.
-
-If the swipe pans the VNC framebuffer instead of dragging the page, the VNC app is eating the gesture. Match `resolution` to the device screen and turn off client-side pan/gestures so the drag reaches Chromium.
-
-## Chrome DevTools Protocol (CDP)
-
-Setting `cdp_port` on a display exposes Chromium's DevTools Protocol so external tools (Playwright, Puppeteer, browser automation agents) can drive the same browser session a user is watching over VNC. This is useful for AI agents that need a "teach me" mode where a human can take over via VNC mid-session.
-
-Example:
+Here is an example configuration showing all available options:
 
 ```yaml
 displays:
-  - url: "https://example.com"
-    resolution: "1280x720"
+  - url: "http://192.168.1.226:8123/lovelace-test2/tablet"
+    resolution: "1280x800"
     port: 5901
-    cdp_port: 9222
+    depth: 24
+    view_only: false
+    browser_args: "--disable-site-isolation-trials --enable-low-end-device-mode"
+    startup_commands: "key Escape mousemove 150 40 sleep 0.5 click 1 sleep 0.5 click 1"
+frame_rate: 2
+vnc_password: "******"
 ```
 
-Then connect from Playwright:
+### Parameter Reference
 
-```python
-browser = await playwright.chromium.connect_over_cdp("ws://<addon-host>:9222")
-```
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `displays` | List | Required | Array of display configurations (URL, resolution, port, depth, etc.). |
+| `url` | String | Required | The web address (URL) the browser should open. |
+| `resolution` | String | Required | Screen resolution in `WIDTHxHEIGHT` format (e.g., `1280x800`). |
+| `port` | Integer | Required | VNC port number (e.g., `5901` for display 1, corresponding to VNC display `:1`). |
+| `depth` | Integer | `24` | Color depth for the Xvnc server (supports `8` to `32`, e.g., `16` or `24`). |
+| `view_only` | Boolean | `false` | When set to `true`, VNC connections are restricted to view-only mode (inputs disabled). |
+| `browser_args` | String | `""` | Extra command-line arguments passed to Chromium to optimize performance or save RAM. |
+| `startup_commands` | String | `key Escape mousemove ...` | Commands executed via `xdotool` immediately after the browser launches and stabilizes. |
+| `frame_rate` | Integer | `5` | Global cap on VNC screen updates per second to conserve CPU usage. |
+| `vnc_password` | String | `""` | Optional password required to authenticate VNC viewer connections. |
 
-`<addon-host>` is either the addon's internal hostname (e.g. `<repo-hash>-vnc-web-browser` for sibling addons on the hassio Docker network) or your Home Assistant host's LAN IP if you publish the port externally.
+---
 
-Do not publish cdp_port to a host port on an untrusted network — CDP has no authentication.
+## Why Use Startup Commands & a Sacrificial Dashboard?
 
-### Why CDP needs special handling
+Home Assistant frontends running on older tablets or embedded systems can occasionally load a blank page or fail to render all dashboard buttons and Lovelace cards upon initial startup. 
 
-Chromium M113+ silently ignores `--remote-debugging-address=0.0.0.0` and binds 127.0.0.1 regardless (upstream marked WontFix: [crbug.com/40261787](https://issues.chromium.org/issues/40261787)). The addon works around this by binding Chromium to a loopback-only internal port and forwarding via `socat` so the CDP endpoint is reachable from outside the container. The `--remote-allow-origins=*` flag is also injected automatically — without it, modern Chromium rejects WebSocket upgrades from non-localhost callers with a 403. Chromium M136+ ignores `--remote-debugging-port` on the default profile; this addon always uses a non-default `--user-data-dir` (`/data/chromium-data-<display>`) so CDP stays enabled.
+To guarantee a reliable display every single time, this add-on uses a clever workaround involving a **"sacrificial dashboard"** and automated `startup_commands`:
 
-Do **not** put `--remote-debugging-port` or `--remote-debugging-address` into `browser_args` when using `cdp_port`; those flags are stripped automatically to prevent collisions.
+1. **The Sacrificial URL:** You point the browser `url` to an initial dashboard page. It does not matter if this specific page occasionally loads blank or fails to render fully, because it is only a landing pad.
+2. **Automated Navigation:** Once the browser finishes loading, `startup_commands` automatically execute a sequence of actions using `xdotool`:
+   - `key Escape`: Dismisses any lingering tooltips, modals, or splash screens.
+   - `mousemove 150 40`: Moves the mouse cursor to specific coordinates (e.g., your navigation menu or sidebar toggle tab).
+   - `click 1`: Clicks to switch over to a stable, fully functioning target dashboard.
+   - Because the browser immediately transitions to a fresh dashboard view, it forces Home Assistant to render all buttons and UI elements correctly every single time.
 
-## Usage
+---
 
-1. Configure your displays in the addon configuration
-2. Start the addon
-3. Connect to the VNC displays using any VNC client:
-   - Host: Your Home Assistant IP address
-   - Port: As configured per display (5901-5908)
-   - Password: As configured in vnc_password
+## HTTP Control API
 
-For Home Assistant dashboards, prefer a long-lived access token so devices without a keyboard never need a VNC login. Otherwise log in once over VNC with **Remember me**; see "Home Assistant login" above. Kindles can pull down from the top of the dashboard to refresh; see "Pull to refresh" above.
+The add-on runs an internal control server on port `8080`, allowing you to automate or remotely manage displays using simple HTTP requests (e.g., via Home Assistant REST commands, automation webhooks, or shell scripts).
 
-## Suggested VNC clients
+### Global Endpoints
+- **Pause All Chromium Instances:**  
+  `GET http://<ha-ip>:8080/pause`
+- **Resume All Chromium Instances:**  
+  `GET http://<ha-ip>:8080/resume`
 
-Any standard VNC client should work. Some that run well on old or low power devices:
+### Per-Display Endpoints (`<display_num>` corresponds to the display index, e.g., `1` for port 5901)
+- **Restart Browser for Display:**  
+  `GET http://<ha-ip>:8080/restart_1`
+- **Pause Browser for Display:**  
+  `GET http://<ha-ip>:8080/pause_1`
+- **Resume Browser for Display:**  
+  `GET http://<ha-ip>:8080/resume_1`
+- **Redraw / Force Refresh Display:**  
+  `GET http://<ha-ip>:8080/redraw_1` *(Sends `Ctrl+F5`, waits 3 seconds, and presses `Escape`)*
 
-### Android
-
-- [AVNC](https://github.com/gujjwal00/avnc) — open source, lightweight, no ads. Android 5.0+. Available on [F-Droid](https://f-droid.org/packages/com.gaurav.avnc/) and Google Play.
-- [MultiVNC](https://github.com/bk138/multivnc) — open source, Android 5.0+. Available on [F-Droid](https://f-droid.org/packages/com.coboltforge.dontmind.multivnc/) and Google Play.
-- [bVNC](https://github.com/iiordanov/remote-desktop-clients) — open source, feature rich. Free APKs on GitHub Releases, Google Play and IzzyOnDroid.
-- [android-vnc-viewer (androidVNC)](https://code.google.com/archive/p/android-vnc-viewer/) — the original open source client. Old releases run on Android 4.0 and even earlier, useful for very old tablets.
-
-### iOS / iPadOS
-
-- [RealVNC Viewer](https://apps.apple.com/app/id352019548) — free and reliable.
-- [Mocha VNC Lite](https://apps.apple.com/app/id284984448) — free version has a 5 minute session limit; the paid Mocha VNC removes it.
-
-Current App Store versions need a recent iOS. On an old iPad, first "get" the app with the same Apple ID on a newer device (or from the App Store purchase history), then install it on the old device: the App Store will offer to **download the last compatible version**.
-
-### ESPHome
-
-A native ESPHome VNC client component is in progress: [esphome/esphome#20623](https://github.com/esphome/esphome/pull/20623). It shows the VNC screen on an ESPHome display (e-paper or LCD, e.g. M5Paper), which makes cheap ESP32 panels usable as dashboards. Until it is merged, you can use it as an [external component](https://esphome.io/components/external_components.html) from the PR.
-
-### reMarkable
-
-[VNSee](https://github.com/matteodelabre/vnsee) works on the reMarkable 1 and 2 (the tablet in the photo above). Install it with [Toltec](https://toltec-dev.org/) (`opkg install vnsee`) and launch `vnsee-gui`. The reMarkable 2 also needs [remarkable2-framebuffer](https://github.com/ddvk/remarkable2-framebuffer).
-
-## Notes
-
-- Each display runs in its own Chromium instance
-- The addon supports up to 4 simultaneous displays
-- Make sure your VNC client supports the resolution you configure
-- The VNC password is not considered very secure so I would advise against exposing this outside your network
-
-This addon is based on this POC https://github.com/MindFreeze/vnc-web
+### Coordinate Click Endpoint
+- **Simulate Mouse Click at Coordinates:**  
+  `GET http://<ha-ip>:8080/click_<display_num>_<X>x<Y>`  
+  *Example:* `http://192.168.1.50:8080/click_1_500x300` clicks at coordinates `500, 300` on display 1.

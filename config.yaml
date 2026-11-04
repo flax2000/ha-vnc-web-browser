@@ -1,8 +1,8 @@
 name: "VNC Web Browser"
-version: "0.16.0"
+version: "0.13.70"
 slug: "vnc_web_browser"
-description: "Display multiple web pages through VNC, with optional Chrome DevTools Protocol access"
-url: "https://github.com/mindfreeze/ha-vnc-web-browser"
+description: "Display multiple web pages through VNC"
+url: "https://github.com/flax2000/ha-vnc-web-browser"
 arch:
   - aarch64
   - amd64
@@ -11,39 +11,31 @@ arch:
   - i386
 startup: application
 boot: auto
-init: false
-timeout: 30
+init: true
 ports:
   5901/tcp: 5901
   5902/tcp: 5902
   5903/tcp: 5903
   5904/tcp: 5904
-  9221/tcp: null
-  9222/tcp: null
-  9223/tcp: null
-  9224/tcp: null
+  8080/tcp: 8080
+
 ports_description:
   5901/tcp: "VNC port for display 1"
   5902/tcp: "VNC port for display 2"
   5903/tcp: "VNC port for display 3"
   5904/tcp: "VNC port for display 4"
-  9221/tcp: "Chrome DevTools Protocol (optional — set cdp_port on a display)"
-  9222/tcp: "Chrome DevTools Protocol (optional — set cdp_port on a display)"
-  9223/tcp: "Chrome DevTools Protocol (optional — set cdp_port on a display)"
-  9224/tcp: "Chrome DevTools Protocol (optional — set cdp_port on a display)"
+  8080/tcp: "Control Port for Sleep Mode"
 schema:
   displays:
-    - url: str?
+    - url: str
       resolution: match(^\d+x\d+$)
-      port: int(5901,5904)
+      port: int(5900,5910)
       depth: int(8,32)?
       view_only: bool?
       browser_args: str?
-      cdp_port: int(9221,9224)?
-      pull_to_refresh: bool?
-      ha_access_token: password?
+      startup_commands: str?
+  frame_rate: int(1,60)?
   vnc_password: password?
-  ha_access_token: password?
 options:
   displays:
     - url: "http://homeassistant.local:8123"
@@ -51,6 +43,7 @@ options:
       port: 5901
       depth: 16
       view_only: false
-      pull_to_refresh: true
-      browser_args: ""
+      browser_args: "--disable-site-isolation-trials --enable-low-end-device-mode"
+      startup_commands: "mousemove 150 40 sleep 0.5 click 1 sleep 0.5 click 1"
+  frame_rate: 5
   vnc_password: ""

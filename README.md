@@ -1,5 +1,5 @@
 # Installation
-Add https://github.com/flax2000/home-assistant-addons to the addon store repositories
+Add https://github.com/flax2000/ha-vnc-web-browser to the addon store repositories
 Install the VNC Web Browser addon
 Configure the addon as described below
 Start the addon

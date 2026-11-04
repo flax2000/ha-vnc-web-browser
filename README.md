@@ -8,7 +8,7 @@ Start the addon
 
 # Home Assistant Kiosk Browser Add-on
 
-This add-on is based on the original POC: [MindFreeze/vnc-web](https://github.com/MindFreeze/vnc-web).
+This add-on is based on the original POC: [MindFreeze/vnc-web](https://github.com/MindFreeze/ha-vnc-web-browser).
 
 An optimized, resource-light kiosk add-on built on Debian Bookworm that runs Chromium and TigerVNC. It allows you to display your Home Assistant dashboards seamlessly on older Android tablets or any device supporting VNC viewers, even in multi-display setups.
 

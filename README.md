@@ -1,6 +1,5 @@
 # Installation
-Add https://github.com/flax2000/ha-vnc-web-browser to the addon store repositories
-Install the VNC Web Browser addon
+add this folder to <hassio top directory>/local_apps/
 Configure the addon as described below
 Start the addon
 

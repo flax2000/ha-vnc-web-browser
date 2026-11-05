@@ -1,7 +1,7 @@
 # Installation
 add this folder to /local_apps/      (in the homeassistant top folder, not the config folder)
 
-(rename it to ha-vnc-web-browser)
+(rename the folder to ha-vnc-web-browser)
 
 to use as a local addon
 

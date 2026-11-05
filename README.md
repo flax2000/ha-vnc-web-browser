@@ -1,7 +1,12 @@
 # Installation
 add this folder to /local_apps/
+
+(rename it to ha-vnc-web-browser)
+
 to use as a local addon
+
 Configure the addon as described below
+
 Start the addon
 
 
